@@ -502,7 +502,10 @@ void SenseU::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc
       switch(param->notify.value[0]) {
         case 0x69: {
           if(param->notify.value[1] != 0x00) {
-            ESP_LOGE(TAG, "Could not register UID, enable pairing mode and try again.");
+            ESP_LOGE(TAG, "Could not register UID (code=0x%02x), enable pairing mode (double-shake) and retrying...", param->notify.value[1]);
+            if(this->status_)
+              this->status_->publish_state("Pairing Required");
+            esp_ble_gap_disconnect(this->parent_->get_remote_bda());
             break;
           }
           this->write_char(REGISTER_TYPE);
@@ -510,16 +513,14 @@ void SenseU::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc
         }
         case 0x68: {
           if(param->notify.value[1] == 0x00) {
-            this->pref_storage_.paired = true;
-            this->store_preferences();
-            esp_ble_gap_disconnect(this->parent_->get_remote_bda());
             for(int i=0; i<6; i++)
                 this->pref_storage_.baby_code[i] = param->notify.value[i+2];
+            this->pref_storage_.paired = true;
             ESP_LOGI(TAG, "Paired using baby code: %02x%02x%02x%02x%02x%02x",
-                this->pref_storage_.baby_code[0], this->pref_storage_.baby_code[1], this->pref_storage_.baby_code[2], 
+                this->pref_storage_.baby_code[0], this->pref_storage_.baby_code[1], this->pref_storage_.baby_code[2],
                 this->pref_storage_.baby_code[3], this->pref_storage_.baby_code[4], this->pref_storage_.baby_code[5]);
             this->store_preferences();
-            //this->write_char(RECONNECTION_TYPE);
+            esp_ble_gap_disconnect(this->parent_->get_remote_bda());
           }
           break;
         }
