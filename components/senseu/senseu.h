@@ -62,6 +62,7 @@ class SenseU : public esphome::ble_client::BLEClientNode, public Component {
   void set_battery_alarm(binary_sensor::BinarySensor *battery_alarm) { battery_alarm_ = battery_alarm; }
   void set_connected_sensor(binary_sensor::BinarySensor *connected_sensor) { connected_sensor_ = connected_sensor; }
   void set_power_switch(bool state);
+  void clear_alarms();
   void set_baby_code(std::string baby_code) { baby_code_ = baby_code; }
 
  private:

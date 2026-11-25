@@ -282,6 +282,27 @@ void SenseU::set_power_switch(bool state) {
     this->power_state_ = state;
 }
 
+void SenseU::clear_alarms() {
+    ESP_LOGI(TAG, "Clearing Sense-U alarms");
+    if(this->breath_alarm_)
+        this->breath_alarm_->publish_state(false);
+    if(this->posture_alarm_)
+        this->posture_alarm_->publish_state(false);
+    if(this->temperature_alarm_)
+        this->temperature_alarm_->publish_state(false);
+    if(this->battery_alarm_)
+        this->battery_alarm_->publish_state(false);
+    if(this->node_state == espbt::ClientState::ESTABLISHED && this->power_state_) {
+        // Briefly toggle On_Alert bit on the Sense-U sensor to silence/reset any latched device alert
+        this->write_char(POWER_OFF);
+        this->set_timeout("senseu_rearm_alerts", 500, [this]() {
+            if(this->node_state == espbt::ClientState::ESTABLISHED && this->power_state_) {
+                this->write_char(POWER_ON);
+            }
+        });
+    }
+}
+
 void SenseU::write_char(WRITE_REQ cmd) {
     uint16_t len = 20;
     uint8_t *data_ptr;

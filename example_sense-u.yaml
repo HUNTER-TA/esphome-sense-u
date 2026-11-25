@@ -59,8 +59,6 @@ sensor:
       name: ${friendly_name} Humidity
     battery_level:
       name: ${friendly_name} Battery Level
-    connected:
-      name: ${friendly_name} Connected
   # Uptime sensor
   - platform: uptime
     name: ${friendly_name} Uptime
@@ -97,8 +95,18 @@ binary_sensor:
       name: ${friendly_name} Temperature Alarm
     battery:
       name: ${friendly_name} Battery Alarm
+    connected:
+      name: ${friendly_name} Connected
 
 switch:
   - platform: senseu
     senseu_id: my_senseu
     name: ${friendly_name} Power Switch
+
+button:
+  - platform: template
+    name: ${friendly_name} Clear Alarms
+    icon: "mdi:bell-off-outline"
+    on_press:
+      - lambda: |-
+          id(my_senseu).clear_alarms();
