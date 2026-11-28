@@ -648,7 +648,6 @@ void SenseU::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc
                 // Sleep State!?
                 break;
             case 0x04: {
-                ESP_LOGD(TAG, "Gesture");
                 int status = param->notify.value[5];
                 std::string state;
                 if(status == 0)
@@ -659,8 +658,11 @@ void SenseU::gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc
                   state = "on left";
                 else if(status == 3)
                   state = "on right";
+                else if(status == 4)
+                  state = "sitting";
                 else
                   state = "Unknown";
+                ESP_LOGD(TAG, "Gesture: status=%d -> %s", status, state.c_str());
                 if(this->posture_)
                     this->posture_->publish_state(state);
                 break;
